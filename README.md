@@ -1,0 +1,2 @@
+# wan22_animate_2pass_workflow.json
+Dockerized ComfyUI workflow: wan22_animate_2pass_workflow.json
