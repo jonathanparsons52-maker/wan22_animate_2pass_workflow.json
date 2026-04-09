@@ -1,0 +1,323 @@
+{
+  "input": {
+    "workflow": {
+      "1": {
+        "inputs": {
+          "filename": "wan2.2_animate_14B_bf16.safetensors"
+        },
+        "class_type": "UNETLoader",
+        "_meta": {
+          "title": "Load WAN 2.2 Animate Model"
+        }
+      },
+      "2": {
+        "inputs": {
+          "filename": "umt5_xxl_fp8_e4m3fn_scaled.safetensors"
+        },
+        "class_type": "CLIPLoader",
+        "_meta": {
+          "title": "Load UMT5-XXL Text Encoder"
+        }
+      },
+      "3": {
+        "inputs": {
+          "filename": "wan_2.1_vae.safetensors"
+        },
+        "class_type": "VAELoader",
+        "_meta": {
+          "title": "Load WAN VAE"
+        }
+      },
+      "4": {
+        "inputs": {
+          "filename": "clip_vision_h.safetensors"
+        },
+        "class_type": "CLIPVisionLoader",
+        "_meta": {
+          "title": "Load CLIP Vision"
+        }
+      },
+      "5": {
+        "inputs": {
+          "text": "RAW photo, realistic person moving naturally, shot on Canon EOS R5, 35mm lens, natural ambient lighting, film grain, subtle skin texture, pores visible, real clothing fabric, natural motion blur, depth of field, unedited footage, documentary style",
+          "clip": [
+            "2",
+            0
+          ]
+        },
+        "class_type": "CLIPTextEncode",
+        "_meta": {
+          "title": "Positive Prompt"
+        }
+      },
+      "6": {
+        "inputs": {
+          "text": "CGI, 3D render, cartoon, anime, painting, illustration, digital art, airbrushed, plastic skin, smooth skin, overexposed, oversaturated, HDR, overprocessed, blurry, deformed, disfigured, watermark, text, ugly, bad anatomy, extra fingers, mutated hands, floating limbs, uncanny valley",
+          "clip": [
+            "2",
+            0
+          ]
+        },
+        "class_type": "CLIPTextEncode",
+        "_meta": {
+          "title": "Negative Prompt"
+        }
+      },
+      "7": {
+        "inputs": {
+          "image": ""
+        },
+        "class_type": "LoadImage",
+        "_meta": {
+          "title": "Reference Image (Your Character)"
+        }
+      },
+      "8": {
+        "inputs": {
+          "text": ""
+        },
+        "class_type": "LoadVideo",
+        "_meta": {
+          "title": "Motion Reference Video"
+        }
+      },
+      "9": {
+        "inputs": {
+          "video": [
+            "8",
+            0
+          ]
+        },
+        "class_type": "GetVideoComponents",
+        "_meta": {
+          "title": "Extract Video Frames"
+        }
+      },
+      "10": {
+        "inputs": {
+          "text": "center",
+          "clip_vision": [
+            "4",
+            0
+          ],
+          "image": [
+            "7",
+            0
+          ]
+        },
+        "class_type": "CLIPVisionEncode",
+        "_meta": {
+          "title": "Encode Reference Image"
+        }
+      },
+      "11": {
+        "inputs": {
+          "value": 384,
+          "positive": [
+            "5",
+            0
+          ],
+          "negative": [
+            "6",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ],
+          "clip_vision_output": [
+            "10",
+            0
+          ],
+          "reference_image": [
+            "7",
+            0
+          ],
+          "pose_video": [
+            "9",
+            0
+          ]
+        },
+        "class_type": "WanAnimateToVideo",
+        "_meta": {
+          "title": "PASS 1: Low-Res WAN 2.2 Animate (384x672)"
+        }
+      },
+      "12": {
+        "inputs": {
+          "seed": 156680208700286,
+          "steps": 30,
+          "cfg": 2.5,
+          "sampler_name": "euler",
+          "scheduler": "beta",
+          "denoise": 1,
+          "model": [
+            "1",
+            0
+          ],
+          "positive": [
+            "11",
+            0
+          ],
+          "negative": [
+            "11",
+            1
+          ],
+          "latent_image": [
+            "11",
+            2
+          ]
+        },
+        "class_type": "KSampler",
+        "_meta": {
+          "title": "PASS 1: KSampler (Low-Res)"
+        }
+      },
+      "13": {
+        "inputs": {
+          "samples": [
+            "12",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ]
+        },
+        "class_type": "VAEDecode",
+        "_meta": {
+          "title": "Decode Low-Res Frames"
+        }
+      },
+      "14": {
+        "inputs": {
+          "value": 24,
+          "images": [
+            "25",
+            0
+          ]
+        },
+        "class_type": "CreateVideo",
+        "_meta": {
+          "title": "Create Output Video"
+        }
+      },
+      "15": {
+        "inputs": {
+          "filename": "wan22_animate_hires/ComfyUI",
+          "video": [
+            "14",
+            0
+          ]
+        },
+        "class_type": "SaveVideo",
+        "_meta": {
+          "title": "Save Output Video"
+        }
+      },
+      "20": {
+        "inputs": {
+          "model_name": "RealESRGAN_x2plus.pth"
+        },
+        "class_type": "UpscaleModelLoader",
+        "_meta": {
+          "title": "Load Upscale Model (RealESRGAN x2)"
+        }
+      },
+      "21": {
+        "inputs": {
+          "upscale_model": [
+            "20",
+            0
+          ],
+          "image": [
+            "13",
+            0
+          ]
+        },
+        "class_type": "ImageUpscaleWithModel",
+        "_meta": {
+          "title": "Upscale Frames x2 (384x672 -> 768x1344)"
+        }
+      },
+      "22": {
+        "inputs": {
+          "upscale_method": "lanczos",
+          "width": 720,
+          "height": 1280,
+          "crop": "disabled",
+          "image": [
+            "21",
+            0
+          ]
+        },
+        "class_type": "ImageScale",
+        "_meta": {
+          "title": "Scale to Target (720x1280)"
+        }
+      },
+      "23": {
+        "inputs": {
+          "pixels": [
+            "22",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ]
+        },
+        "class_type": "VAEEncode",
+        "_meta": {
+          "title": "Encode to High-Res Latent"
+        }
+      },
+      "24": {
+        "inputs": {
+          "seed": 156680208700286,
+          "steps": 15,
+          "cfg": 2,
+          "sampler_name": "euler",
+          "scheduler": "beta",
+          "denoise": 0.45,
+          "model": [
+            "1",
+            0
+          ],
+          "positive": [
+            "11",
+            0
+          ],
+          "negative": [
+            "11",
+            1
+          ],
+          "latent_image": [
+            "23",
+            0
+          ]
+        },
+        "class_type": "KSampler",
+        "_meta": {
+          "title": "PASS 2: KSampler (High-Res Refine)"
+        }
+      },
+      "25": {
+        "inputs": {
+          "samples": [
+            "24",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ]
+        },
+        "class_type": "VAEDecode",
+        "_meta": {
+          "title": "Decode High-Res Frames"
+        }
+      }
+    }
+  }
+}
